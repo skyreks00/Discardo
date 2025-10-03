@@ -30,8 +30,21 @@
           name="message"
           placeholder="Votre message"
           maxlength="500"
-          required
         ></textarea>
+        <div class="chat-upload">
+          <label for="image" class="chat-upload-label">Image (PNG, JPG, GIF, WebP · 1 Mo max)</label>
+          <input
+            id="image"
+            class="chat-file"
+            type="file"
+            name="image"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+          />
+          <div id="image-preview" class="chat-preview" hidden>
+            <img alt="Prévisualisation" />
+            <button type="button" id="clear-image" class="chat-preview-clear">Retirer</button>
+          </div>
+        </div>
         <button type="submit" class="chat-submit">Envoyer</button>
       </form>
       <footer class="chat-footer">
@@ -46,6 +59,9 @@
           <time class="chat-time" datetime=""></time>
         </div>
         <p class="chat-text"></p>
+        <figure class="chat-image" hidden>
+          <img alt="Image partagée" loading="lazy" />
+        </figure>
       </article>
     </template>
 
