@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maquette Chat WebSocket</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="chat-shell">
+      <header class="chat-header">
+        <h1>Chat en direct</h1>
+        <p class="chat-subtitle">Prototype WebSocket temps réel</p>
+      </header>
+      <section id="messages" class="chat-messages" aria-live="polite"></section>
+      <form id="chat-form" class="chat-form" autocomplete="off">
+        <input
+          id="author"
+          class="chat-input"
+          type="text"
+          name="author"
+          placeholder="Votre pseudo"
+          maxlength="32"
+          required
+        />
+        <textarea
+          id="message"
+          class="chat-textarea"
+          name="message"
+          placeholder="Votre message"
+          maxlength="500"
+          required
+        ></textarea>
+        <button type="submit" class="chat-submit">Envoyer</button>
+      </form>
+      <footer class="chat-footer">
+        <small>Maquette WebSocket · Node.js + ws</small>
+      </footer>
+    </main>
+
+    <template id="message-template">
+      <article class="chat-message">
+        <div class="chat-meta">
+          <span class="chat-author"></span>
+          <time class="chat-time" datetime=""></time>
+        </div>
+        <p class="chat-text"></p>
+      </article>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

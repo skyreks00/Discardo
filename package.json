@@ -1,0 +1,13 @@
+{
+  "name": "websocket-chat-mockup",
+  "version": "0.1.0",
+  "description": "Maquette d'un chat en temps réel avec WebSocket et Node.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.16.0"
+  }
+}
