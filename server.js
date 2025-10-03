@@ -1,74 +1,61 @@
-const template = document.getElementById('message-template');
-const messagesContainer = document.getElementById('messages');
-const form = document.getElementById('chat-form');
-const authorInput = document.getElementById('author');
-const messageInput = document.getElementById('message');
+const path = require('path');
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
 
-const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${protocol}://${window.location.host}`);
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-function appendMessage(message) {
-  const clone = template.content.cloneNode(true);
-  const authorEl = clone.querySelector('.chat-author');
-  const timeEl = clone.querySelector('.chat-time');
-  const textEl = clone.querySelector('.chat-text');
+const PORT = process.env.PORT || 3000;
+const MAX_HISTORY = 50;
+const messageHistory = [];
 
-  authorEl.textContent = message.author;
-  timeEl.textContent = new Intl.DateTimeFormat('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }).format(new Date(message.timestamp));
-  timeEl.dateTime = message.timestamp;
-  textEl.textContent = message.text;
+app.use(express.static(path.join(__dirname, 'public')));
 
-  messagesContainer.appendChild(clone);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
+wss.on('connection', (socket) => {
+  console.log('Client connected');
 
-ws.addEventListener('open', () => {
-  console.info('Connecté au serveur WebSocket');
-});
+  socket.send(JSON.stringify({ type: 'history', payload: messageHistory }));
 
-ws.addEventListener('message', (event) => {
-  try {
-    const data = JSON.parse(event.data);
-
-    if (data.type === 'history' && Array.isArray(data.payload)) {
-      data.payload.forEach(appendMessage);
-    } else if (data.type === 'chat' && data.payload) {
-      appendMessage(data.payload);
+  socket.on('message', (raw) => {
+    let data;
+    try {
+      data = JSON.parse(raw.toString());
+    } catch (err) {
+      console.error('Invalid message received', err);
+      return;
     }
-  } catch (error) {
-    console.error('Message mal formé reçu', error);
-  }
-});
 
-ws.addEventListener('close', () => {
-  console.warn('Connexion WebSocket fermée');
-});
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  if (ws.readyState !== WebSocket.OPEN) {
-    alert('Le serveur WebSocket est hors ligne.');
-    return;
-  }
-
-  const payload = {
-    type: 'chat',
-    payload: {
-      author: authorInput.value.trim() || 'Anonyme',
-      text: messageInput.value.trim()
+    if (data.type !== 'chat' || typeof data.payload?.text !== 'string') {
+      return;
     }
-  };
 
-  if (!payload.payload.text) {
-    return;
-  }
+    const message = {
+      id: Date.now(),
+      text: data.payload.text.slice(0, 500),
+      author: data.payload.author?.slice(0, 32) || 'Anonyme',
+      timestamp: new Date().toISOString()
+    };
 
-  ws.send(JSON.stringify(payload));
-  messageInput.value = '';
-  messageInput.focus();
+    messageHistory.push(message);
+    if (messageHistory.length > MAX_HISTORY) {
+      messageHistory.shift();
+    }
+
+    const serialized = JSON.stringify({ type: 'chat', payload: message });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(serialized);
+      }
+    });
+  });
+
+  socket.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Serveur de chat WebSocket prêt sur http://localhost:${PORT}`);
 });
