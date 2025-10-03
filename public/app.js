@@ -4,7 +4,8 @@ const form = document.getElementById('chat-form');
 const authorInput = document.getElementById('author');
 const messageInput = document.getElementById('message');
 
-const ws = new WebSocket(`ws://${window.location.host}`);
+const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${protocol}://${window.location.host}`);
 
 function appendMessage(message) {
   const clone = template.content.cloneNode(true);
